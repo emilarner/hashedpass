@@ -1,0 +1,5 @@
+passlib
+blessed
+getpass
+argon2_cffi
+readline
