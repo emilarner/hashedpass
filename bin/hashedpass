@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+
+import hashedpass.main
+hashedpass.main.main()

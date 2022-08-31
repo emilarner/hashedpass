@@ -1,0 +1,32 @@
+[project]
+name = "hashedpass"
+version = "1.0.0"
+authors = [
+  { name="Emil Arner", email="arner@usa.com" },
+]
+description = "Hashed-based password manager program/library."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "passlib",
+    "blessed",
+    "argon2_cffi"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src/"]  # list of folders that contain the packages (["."] by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
+[project.urls]
+"Homepage" = "https://github.com/emilarner/hashedpass"

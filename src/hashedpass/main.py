@@ -1,13 +1,20 @@
 import sys
 import os
-import hashedpass
 import blessed
 import getpass
 import readline
 import time
 import threading
 
-import config
+try:
+    from hashedpass import hashedpass
+
+except:
+    import hashedpass
+
+c_timeout = 15
+c_showpass_timeout = 4
+c_timeout_enabled_default = True
 
 t = blessed.Terminal()
 
@@ -59,7 +66,7 @@ class HashedPassInteractive:
         print(t.blue_bold("hashedpass - decentralized password manager based on hashes."))
         print(t.yellow_bold("Interactive Mode"))
         print(t.red_bold(
-            f"This program will automatically exit and clear after {config.timeout} seconds of inactivity!\n"
+            f"This program will automatically exit and clear after {c_timeout} seconds of inactivity!\n"
         ))
 
     def __init__(self):
@@ -67,7 +74,7 @@ class HashedPassInteractive:
         readline.parse_and_bind('tab: complete')
         readline.parse_and_bind('set editing-mode vi')
 
-        self.timeout_enabled = config.timeout_enabled_default
+        self.timeout_enabled = c_timeout_enabled_default
         self.timeout_thread: threading.Thread = None
         self.timingout = False
     
@@ -96,7 +103,7 @@ class HashedPassInteractive:
         print(f"Your master password is: {self.masterpassword}")
         print(t.bold_red("Clearing in: "))
 
-        for i in reversed(range(config.showpass_timeout)):
+        for i in reversed(range(c_showpass_timeout)):
             print(f"{i+1}")
             time.sleep(1)
 
@@ -165,7 +172,7 @@ class HashedPassInteractive:
             print(password.hash())
 
 
-    def timeout(self, default_timeout = config.timeout):
+    def timeout(self, default_timeout = c_timeout):
         "To avoid the program from being open too long, close the program after a certain time."
 
         # Check if there has been activity one hundred times
