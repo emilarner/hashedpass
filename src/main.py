@@ -18,6 +18,9 @@ To generate your password, just type, in order (without brackets):
 
 For special commands, prefix them with an $--but you already knew that:
 Special Commands:
+$help - Display this menu.
+$checkpass - Did you make a spelling mistake? Check your master password with this command.
+$toggle_timeout - Toggle on/off the automatic timeout (by default, this is always on).
 
 [Dangerous, if you do not remember/record the parameters]
 $argon2str [argon_string] - Set global argon2 parameters by string
@@ -30,13 +33,18 @@ class HashedPassInteractive:
     def hello(self):
         "Interactive mode hello message."
         
-        print(t.blue_bold("hashedpass - decentralized password manager based on hashes.\n"))
+        print(t.blue_bold("hashedpass - decentralized password manager based on hashes."))
+        print(t.yellow_bold("Interactive Mode"))
+        print(t.red_bold(
+            f"This program will automatically exit and clear after {config.timeout} seconds of inactivity!\n"
+        ))
 
     def __init__(self):
         # Activate readline to make using this program easier.
         readline.parse_and_bind('tab: complete')
         readline.parse_and_bind('set editing-mode vi')
 
+        self.timeout_enabled = config.timeout_enabled_default
         self.timeout_thread: threading.Thread = None
         self.timingout = False
     
@@ -53,13 +61,32 @@ class HashedPassInteractive:
         self.main_loop()
 
 
+    def clear(self):
+        os.system("clear")
+        os.system("reset")
+
+    def checkpass(self):
+        print(f"Your master password is: {self.masterpassword}")
+        print(t.bold_red("Clearing in: "))
+
+        for i in reversed(range(config.showpass_timeout)):
+            print(f"{i+1}")
+            time.sleep(1)
+
+        self.clear()
+
+    def toggle_timeout(self):
+        self.timeout_enabled = not self.timeout_enabled
+        print("Timeout enabled" if self.timeout_enabled else "Timeout disabled")
+
     def main_loop(self):
         "Continuously obtain inputs for password derivation."
 
         while True:
-            self.timingout = True
-            self.timeout_thread = threading.Thread(target = self.timeout_thread)
-            self.timeout_thread.start()
+            if (self.timeout_enabled):
+                self.timingout = True
+                self.timeout_thread = threading.Thread(target = self.timeout)
+                self.timeout_thread.start()
 
             command = input("hashedpass>")
 
@@ -70,6 +97,15 @@ class HashedPassInteractive:
 
                 if (command == "help"):
                     print(help_text)
+
+                elif (command == "showpass"):
+                    self.checkpass()
+
+                elif (command == "toggle_timeout"):
+                    self.toggle_timeout
+
+                else:
+                    sys.stderr.write(f"The command ${command} was not recognized. Seek $help?\n")
 
                 continue
 
@@ -111,8 +147,14 @@ class HashedPassInteractive:
             # Wait 1/100 of the timeout time
             time.sleep(default_timeout / 100)
 
+        # Reset and clear the screen (UNIX only)
+        self.clear()
+
         # Exit and protect the user's password.
-        sys.stderr.write("Timeout occured, program has exited. Now your secret password is long gone!\n")
+        sys.stderr.write(t.red_bold(
+            "Timeout occured, hashedpass has exited. Passwords should be gone now...\n"
+        ))
+
         os._exit(-1)
 
 
@@ -132,20 +174,26 @@ def main():
     # Non-interactive mode: we are expecting command line arguments.
     try:
         for i in range(len(sys.argv)):
-            if (sys.argv[i] in ["-m", "--master-password", "-p", "--password"]):
-                masterpassword = sys.argv[i + 1]
+            if (sys.argv[i][0] == "-"):
+                if (sys.argv[i] in ["-m", "--master-password", "-p", "--password"]):
+                    masterpassword = sys.argv[i + 1]
 
-            if (sys.argv[i] in ["-s", "--service"]):
-                service = sys.argv[i + 1]
+                elif (sys.argv[i] in ["-s", "--service"]):
+                    service = sys.argv[i + 1]
 
-            if (sys.argv[i] in ["-i", "--id", "-u", "--username", "-e", "--email"]):
-                id = sys.argv[i + 1]
+                elif (sys.argv[i] in ["-i", "--id", "-u", "--username", "-e", "--email"]):
+                    id = sys.argv[i + 1]
 
-            if (sys.argv[i] in ["-a", "--argon2"]):
-                argon2 = sys.argv[i + 1]
+                elif (sys.argv[i] in ["-a", "--argon2"]):
+                    argon2 = sys.argv[i + 1]
 
-            if (sys.argv[i] in ["-c", "--constraints"]):
-                constraints = sys.argv[i + 1]
+                elif (sys.argv[i] in ["-c", "--constraints"]):
+                    constraints = sys.argv[i + 1]
+
+                else:
+                    sys.stderr.write(f"'{sys.argv[i]}' is not a valid parameter. Exiting...\n")
+                    sys.exit(-1)
+
 
 
     except IndexError as error:

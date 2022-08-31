@@ -156,6 +156,9 @@ class HashedPassword:
         self.argon2 = argon2_params
         self.constraints = constraints
 
+    def __str__(self) -> str:
+        pass
+
 
 
 class Password:
@@ -180,12 +183,16 @@ class Password:
         self.salt = salt
 
     def hash(self) -> str:
+        "Create a password from the information provided in this class."
+
+        # This is the format for the hash as described in the standard.
         tbc = "{mpass}={service}={id}".format(
             mpass = self.mpassword,
             service = self.service.lower(),
             id = self.id.lower()
         )
 
+        # Produce the sha512 hash, then feed that into a much more secure Argon2 hash.
         hashed = hashlib.sha512(tbc.encode()).digest()
         argon2i: passlib.hash.argon2 = passlib.hash.argon2.using(
             salt = self.salt,
@@ -195,10 +202,13 @@ class Password:
             time_cost = self.iterations
         )
 
-
+        # Get the Base64 digest of the Argon2 hash, without any of the parameters.
         b64_hash = argon2i.hash(hashed).split("$")[-1]
+        
+        # Our seed value will be the ordinal value of the first character of the Base64 digest. 
         seed = ord(b64_hash[0])
 
+        # Apply any constraints, if applicable, then return the final Base64 Argon2 digest.
         return self.constraints.apply(seed, b64_hash)
 
 
