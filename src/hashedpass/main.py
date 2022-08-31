@@ -12,8 +12,8 @@ try:
 except:
     import hashedpass
 
-c_timeout = 15
-c_showpass_timeout = 4
+c_timeout = 60
+c_showpass_timeout = 5
 c_timeout_enabled_default = True
 
 t = blessed.Terminal()
@@ -93,7 +93,7 @@ class HashedPassInteractive:
 
 
     def clear(self):
-        os.system("clear")
+        os.system("clear && printf '\e[3J'")
         os.system("reset")
 
     def simple_clear(self):

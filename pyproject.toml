@@ -1,9 +1,10 @@
 [project]
 name = "hashedpass"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
   { name="Emil Arner", email="arner@usa.com" },
 ]
+
 description = "Hashed-based password manager program/library."
 readme = "README.md"
 license = { file="LICENSE" }
