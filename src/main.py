@@ -27,6 +27,29 @@ $argon2str [argon_string] - Set global argon2 parameters by string
 $argon2 - Interactively configure argon2 parameters, then spit out the string parameters for saving.
 """
 
+arguments_text = """
+hashedpass.py - Make passwords via hashes with a master password, a decentralized password manager.
+USAGE:
+
+To use hashedpass in interactive mode (it gives prompts, etc), supply no arguments.
+
+Using hashedpass with terminal arguments requires supplying the master password, service/website,
+and username/email/id.
+
+-m, --master-password  |        Supply the master password
+-p, --password         |
+
+
+-s, --service          |        Supply the website/service name
+-w, --website          |        
+
+
+-i, --id               |        Supply the id, username, or email.
+-u, --username         |
+-e, --email            |
+
+"""
+
 class HashedPassInteractive:
     "Interactive mode handler."
 
@@ -56,7 +79,8 @@ class HashedPassInteractive:
 
         # Securely obtain the master password.
         self.masterpassword = getpass.getpass("Enter your master password: ")
-        
+        print("To get help with commands and input, type $help")
+
         # Start receiving commands
         self.main_loop()
 
@@ -64,6 +88,9 @@ class HashedPassInteractive:
     def clear(self):
         os.system("clear")
         os.system("reset")
+
+    def simple_clear(self):
+        os.system("clear")
 
     def checkpass(self):
         print(f"Your master password is: {self.masterpassword}")
@@ -103,6 +130,9 @@ class HashedPassInteractive:
 
                 elif (command == "toggle_timeout"):
                     self.toggle_timeout
+
+                elif (command == "clear"):
+                    self.simple_clear()
 
                 else:
                     sys.stderr.write(f"The command ${command} was not recognized. Seek $help?\n")
@@ -178,7 +208,7 @@ def main():
                 if (sys.argv[i] in ["-m", "--master-password", "-p", "--password"]):
                     masterpassword = sys.argv[i + 1]
 
-                elif (sys.argv[i] in ["-s", "--service"]):
+                elif (sys.argv[i] in ["-s", "--service", "-w", "--website"]):
                     service = sys.argv[i + 1]
 
                 elif (sys.argv[i] in ["-i", "--id", "-u", "--username", "-e", "--email"]):
@@ -190,8 +220,13 @@ def main():
                 elif (sys.argv[i] in ["-c", "--constraints"]):
                     constraints = sys.argv[i + 1]
 
+                elif (sys.argv[i] in ["-h", "--help"]):
+                    print(arguments_text)
+                    return
+
                 else:
                     sys.stderr.write(f"'{sys.argv[i]}' is not a valid parameter. Exiting...\n")
+                    sys.stderr.write("Try -h/--help ?\n")
                     sys.exit(-1)
 
 

@@ -26,7 +26,10 @@ class Argon2Parameters:
         self.salt = salt
 
     # Argon2 parameter string in the format of:
-    # memory:iterations:timecost:size:salt
+    # memory:iterations:threads:size:salt
+
+    def __str__(self) -> str:
+        return f"{self.memory}:{self.iterations}:{self.threads}:{self.size}:{self.salt}"
 
     @staticmethod
     def from_string(string: str):
@@ -153,11 +156,11 @@ class HashedPassword:
 
     def __init__(self, digest, argon2_params, constraints):
         self.digest = digest
-        self.argon2 = argon2_params
-        self.constraints = constraints
+        self.argon2: Argon2Parameters = argon2_params
+        self.constraints: Constraints = constraints
 
     def __str__(self) -> str:
-        pass
+        return f"{self.digest}:{str(self.argon2)}:{str(self.constraints)}"
 
 
 
