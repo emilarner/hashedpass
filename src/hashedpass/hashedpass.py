@@ -1,3 +1,4 @@
+from email.errors import MalformedHeaderDefect
 import os
 import json
 import sys
@@ -33,7 +34,10 @@ class Argon2Parameters:
 
     @staticmethod
     def from_string(string: str):
-        "Initialize an Argon2Parameters object using the Argon2 parameter string."
+        "Initialize an Argon2Parameters object using the Argon2 parameter string. Does nothing if None"
+
+        if (string == None):
+            return Argon2Parameters(None, None, None, None, None)
 
         # Convert each element to an integer.
         strtokens = string.split(":")
@@ -56,38 +60,62 @@ class Constraints:
     class MalformedConstraint(Exception):
         pass
 
-    def __init__(self, length = 0, ochars = [], achars = [], from_string: str = None):
-        
-        # This relates the abbreviations found in the constraint format to variables here.
-        code_to_variable = {
-            "l": (length, int),
-            "oc": (ochars, list),
-            "ac": (achars, list)
+    @staticmethod
+    def from_string(constraint_str: str):
+        "Return a Constraints object from its string representation. Does nothing if None"
+
+        # Return default object if constraint_str == None
+        if (constraint_str == None):
+            return Constraints()
+
+
+
+
+        # Make a dictionary corresponding the key names to the actual variables here
+        key_to_value = {
+            "l": 0,
+            "ac": [],
+            "oc": []
         }
-        
-        # If we are constructing this object from a String
-        if (from_string != None):
-            fields = from_string.split(";")
-            for field in fields:
-                key = field.split("=")[0]
-                value = field.split("=")[1]
 
-                # If the key is not recognized as a valid constraint (defined within the format)
-                if (key not in code_to_variable.keys()):
-                    raise Constraints.MalformedConstraint("Malformed constraint")
 
-                # If dealing with a normal, scalar value.
-                # Also, preform some type casting when necessary.
-                if (not value.startswith("[")):
-                    code_to_variable[key][0] = code_to_variable[key][1](value)
-                    continue
+        # Get each constraint
+        constraints = constraint_str.split(";")
 
-                # Parse the array type and load in the array where it needs to go.
+        # Go through them and then get their keys/values.
+        for constraint in constraints:
+            tokens = constraint.split("=")
+
+            key = tokens[0].rstrip()
+
+            print(key)
+
+            # Only operate on valid keys
+            if (key not in key_to_value):
+                raise Constraints.MalformedConstraint(f"Key '{key}' is not a valid constraint.")
+
+            value = tokens[1].lstrip()
+
+            # Handle array types
+            if (value.startswith("[")):
                 value = value.lstrip("[").rstrip("]")
-                values = value.split(",")
-                code_to_variable[key] = values
-                
-        self.length = length
+                value = value.split(",")
+
+            key_to_value[key] = value
+
+
+        # Return our beautiful constraint object
+        return Constraints(
+            length = key_to_value["l"], 
+            ochars = key_to_value["oc"], 
+            achars = key_to_value["ac"]
+        )
+
+
+            
+
+    def __init__(self, length = 0, ochars = [], achars = []):
+        self.length = int(length)
         self.ochars = ochars
         self.achars = achars
 
@@ -98,7 +126,7 @@ class Constraints:
 
         # If there are length constraints, truncate the hash by it. 
         if (self.length != 0):
-            result = result[0 : self.length - 1]
+            result = result[0 : int(self.length)]
 
         # Position of where the number will go. 
         number_pos = seed % (len(result) - 1)

@@ -34,8 +34,7 @@ $argon2str [argon_string] - Set global argon2 parameters by string
 $argon2 - Interactively configure argon2 parameters, then spit out the string parameters for saving.
 """
 
-arguments_text = """
-hashedpass.py - Make passwords via hashes with a master password, a decentralized password manager.
+arguments_text = """hashedpass.py - Make passwords via hashes with a master password, a decentralized password manager.
 USAGE:
 
 To use hashedpass in interactive mode (it gives prompts, etc), supply no arguments.
@@ -54,6 +53,9 @@ and username/email/id.
 -i, --id               |        Supply the id, username, or email.
 -u, --username         |
 -e, --email            |
+
+-c, --constraint       |        Supply a constraint value, if applicable.
+-a, --argon2           |        Supply custom argon2 parameters, if applicable.
 
 """
 
@@ -164,7 +166,12 @@ class HashedPassInteractive:
 
             # Get the password hash/digest
             try:
-                password = hashedpass.Password(self.masterpassword, service, id, hashedpass.Constraints())
+                password = hashedpass.Password(
+                    self.masterpassword, 
+                    service, 
+                    id, 
+                    hashedpass.Constraints.from_string(constraint_string)
+                )
             except hashedpass.Constraints.MalformedConstraint:
                 sys.stderr.write("Error: the constraint string is malformed!\n")
                 continue
@@ -239,7 +246,7 @@ def main():
 
 
     except IndexError as error:
-        sys.stderr.write("Error: one of the arguments did not receive a value.\n")
+        sys.stderr.write(f"Error: one of the arguments did not receive a value.\n")
         sys.exit(-1)
 
 
@@ -251,7 +258,7 @@ def main():
 
     try:
         p = hashedpass.Password(masterpassword, service, id, 
-                                hashedpass.Constraints(from_string = constraints))
+                                hashedpass.Constraints.from_string(constraints))
     
     except hashedpass.Constraints.MalformedConstraint:
         sys.stderr.write("Error: the constraint string is malformed!\n")
