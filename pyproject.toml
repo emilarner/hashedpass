@@ -1,6 +1,6 @@
 [project]
 name = "hashedpass"
-version = "1.0.1"
+version = "1.0.2"
 authors = [
   { name="Emil Arner", email="arner@usa.com" },
 ]

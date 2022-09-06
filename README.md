@@ -1,9 +1,8 @@
 # hashedpass
 Decentralized, storage less hash-based password management standard and program.
 
-Version: 1.0.1
+Version: 1.0.2
 To Do:
- - Implement constraint strings and constraints.
  - Implement Argon2 parameter strings.
 
 *hashedpass* is a program and library written in Python which seeks to standardize storage less, decentralized password management based off of hashing. In addition to *hashedpass* being a program/library, it also exists as a standard, written as a document; it can be found [here](https://github.com/emilarner/hashedpass/tree/main/docs). 
